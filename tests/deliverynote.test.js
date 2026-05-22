@@ -19,6 +19,7 @@ const { default: app } = await import('../src/app.js');
 let token;
 let clientId;
 let projectId;
+let companyId;
 
 const userData = {
   email: 'note-test@bildy.com',
@@ -49,6 +50,7 @@ beforeEach(async () => {
   const user = await User.create({ ...userData, password: hashedPassword, status: 'verified' });
   const company = await Company.create({ name: 'Test Company', cif: 'A00000000', owner: user._id });
   user.company = company._id;
+  companyId = company._id;
   await user.save();
 
   const loginRes = await request(app)
@@ -257,6 +259,95 @@ describe('GET /api/deliverynote/pdf/:id', () => {
   test('falla sin token', async () => {
     const res = await request(app).get('/api/deliverynote/pdf/000000000000000000000000');
     expect(res.status).toBe(401);
+  });
+
+  test('usuario de otra compañía recibe 404 al intentar descargar el PDF', async () => {
+    const created = await request(app).post('/api/deliverynote').set('Authorization', `Bearer ${token}`)
+      .send({ ...noteHours, project: projectId, client: clientId });
+    const noteId = created.body.data._id;
+
+    const hashedPassword = await bcrypt.hash('Password123!', 10);
+    const otherUser = await User.create({
+      email: 'other-company@bildy.com',
+      password: hashedPassword,
+      name: 'Other',
+      lastName: 'User',
+      nif: '87654321B',
+      status: 'verified'
+    });
+    const otherCompany = await Company.create({ name: 'Other Company', cif: 'B99999999', owner: otherUser._id });
+    otherUser.company = otherCompany._id;
+    await otherUser.save();
+
+    const loginRes = await request(app)
+      .post('/api/user/login')
+      .send({ email: 'other-company@bildy.com', password: 'Password123!' });
+    const otherToken = loginRes.body.accessToken;
+
+    const res = await request(app)
+      .get(`/api/deliverynote/pdf/${noteId}`)
+      .set('Authorization', `Bearer ${otherToken}`);
+
+    expect(res.status).toBe(404);
+  });
+
+  test('admin de la misma compañía que no es el creador recibe 403', async () => {
+    const created = await request(app).post('/api/deliverynote').set('Authorization', `Bearer ${token}`)
+      .send({ ...noteHours, project: projectId, client: clientId });
+    const noteId = created.body.data._id;
+
+    const hashedPassword = await bcrypt.hash('Password123!', 10);
+    await User.create({
+      email: 'other-admin@bildy.com',
+      password: hashedPassword,
+      name: 'Other',
+      lastName: 'Admin',
+      nif: '22222222D',
+      role: 'admin',
+      status: 'verified',
+      company: companyId
+    });
+
+    const loginRes = await request(app)
+      .post('/api/user/login')
+      .send({ email: 'other-admin@bildy.com', password: 'Password123!' });
+    const otherAdminToken = loginRes.body.accessToken;
+
+    const res = await request(app)
+      .get(`/api/deliverynote/pdf/${noteId}`)
+      .set('Authorization', `Bearer ${otherAdminToken}`);
+
+    expect(res.status).toBe(403);
+  });
+
+  test('usuario con role guest de la misma compañía puede descargar el PDF (200)', async () => {
+    const created = await request(app).post('/api/deliverynote').set('Authorization', `Bearer ${token}`)
+      .send({ ...noteHours, project: projectId, client: clientId });
+    const noteId = created.body.data._id;
+
+    const hashedPassword = await bcrypt.hash('Password123!', 10);
+    await User.create({
+      email: 'guest@bildy.com',
+      password: hashedPassword,
+      name: 'Guest',
+      lastName: 'User',
+      nif: '11111111C',
+      role: 'guest',
+      status: 'verified',
+      company: companyId
+    });
+
+    const loginRes = await request(app)
+      .post('/api/user/login')
+      .send({ email: 'guest@bildy.com', password: 'Password123!' });
+    const guestToken = loginRes.body.accessToken;
+
+    const res = await request(app)
+      .get(`/api/deliverynote/pdf/${noteId}`)
+      .set('Authorization', `Bearer ${guestToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/application\/pdf/);
   });
 });
 
