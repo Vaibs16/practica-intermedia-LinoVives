@@ -116,7 +116,14 @@ export const getDeliveryNotePdf = async (req, res) => {
     .populate('client', 'name cif email')
     .populate('project', 'name projectCode');
 
-  if (!note) throw AppError.notFound('Albarán no encontrado');
+  if (!note) throw AppError.notFound('Albarán');
+
+  // Admins solo pueden descargar sus propios albaranes, guests acceden a todos los de la compañía
+  const isOwner = note.user._id.toString() === req.user._id.toString();
+  const isGuest = req.user.role === 'guest';
+  if (!isOwner && !isGuest) {
+    throw AppError.forbidden('No tienes permiso para descargar este albarán');
+  }
 
   if (note.signed && note.pdfUrl) {
     return res.redirect(note.pdfUrl);
