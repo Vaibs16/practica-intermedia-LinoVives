@@ -166,6 +166,36 @@ const socket = io('http://localhost:3000', {
 
 The connection requires a valid JWT token. Each client is automatically joined to a room identified by their `company._id`, so events are only received by users of the same company.
 
+### Testing WebSocket Events (Socket.IO)
+
+REST clients like Bruno or the REST Client extension cannot test WebSocket connections since they only handle HTTP. To test real-time events, connect directly using the Socket.IO client library.
+From a Node.js script:
+jsimport { io } from 'socket.io-client';
+
+Paso 1 - cargar el script (tu servidor lo sirve automáticamente):
+```js
+
+const script = document.createElement('script');
+script.src = 'http://localhost:3000/socket.io/socket.io.js';
+document.head.appendChild(script);
+```
+  Espera 1 segundo a que cargue, luego:
+```js
+Paso 2 — conectar y escuchar:
+const socket = io('http://localhost:3000', {
+auth: { token: 'PEGA_AQUI_TU_JWT_REAL' } 
+});
+
+socket.on('connect', () => console.log('Conectado:', socket.id));
+socket.on('connect_error', (err) => console.log('Error:', err.message));
+socket.on('client:new', (data) => console.log('Nuevo cliente:', data));
+socket.on('project:new', (data) => console.log('Nuevo proyecto:', data));
+socket.on('deliverynote:new', (data) => console.log('Nuevo albarán:', data));
+socket.on('deliverynote:signed', (data) => console.log('Albarán firmado:', data));
+```
+
+A valid JWT token is required on every connection. Once authenticated, the client is automatically joined to a room scoped to its company, so events are only received by users belonging to the same organization.
+
 **Events:**
 
 | Event | Triggered when |

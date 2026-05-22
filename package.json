@@ -11,7 +11,7 @@
     "test:coverage": "npm test -- --coverage"
   },
   "engines": {
-    "node": ">=20.11.0"
+    "node": ">=22.0.0"
   },
   "keywords": [],
   "author": "",

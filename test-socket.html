@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Socket</title></head>
+<body>
+<h2>Test Socket.IO</h2>
+<div id="log"></div>
+<!-- El servidor sirve automáticamente el cliente de Socket.IO en esta ruta -->
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script>
+  // Token JWT obtenido del login. Caduca en 15 minutos — si falla, haz login de nuevo y reemplázalo.
+  const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTAxOWUwYjdkMmM5Njc4ZDQwMGFkNDQiLCJyb2xlIjoiZ3Vlc3QiLCJpYXQiOjE3Nzg0OTE5NjQsImV4cCI6MTc3ODQ5Mjg2NH0.VR3126jDSV60Fb81GFdmddcX_dPIeqmic2LNv-YG56M';
+
+  // Función auxiliar que muestra mensajes en pantalla y en la consola del navegador
+  const log = (msg) => {
+    console.log(msg);
+    document.getElementById('log').innerHTML += '<p>' + msg + '</p>';
+  };
+
+  // Abre la conexión WebSocket con el servidor.
+  // El token se manda en el handshake — el middleware de socket.js lo verifica con JWT
+  // y une al usuario a la room de su compañía (socket.join(companyId)).
+  const socket = io('http://localhost:3000', { auth: { token: TOKEN } });
+
+  // Se dispara cuando la conexión WebSocket se establece correctamente
+  socket.on('connect', () => log('✅ Conectado: ' + socket.id));
+
+  // Se dispara si el servidor rechaza la conexión (token inválido, caducado, usuario no encontrado...)
+  socket.on('connect_error', (err) => log('❌ Error: ' + err.message));
+
+  // Emitido desde client.controllers.js cuando se crea un cliente (POST /api/client)
+  socket.on('client:new', (data) => log('📦 client:new → ' + JSON.stringify(data)));
+
+  // Emitido desde project.controllers.js cuando se crea un proyecto (POST /api/project)
+  socket.on('project:new', (data) => log('📦 project:new → ' + JSON.stringify(data)));
+
+  // Emitido desde deliverynote.controllers.js cuando se crea un albarán (POST /api/deliverynote)
+  socket.on('deliverynote:new', (data) => log('📦 deliverynote:new → ' + JSON.stringify(data)));
+
+  // Emitido desde deliverynote.controllers.js cuando se firma un albarán (PATCH /api/deliverynote/:id/sign)
+  socket.on('deliverynote:signed', (data) => log('📦 deliverynote:signed → ' + JSON.stringify(data)));
+</script>
+</body>
+</html>

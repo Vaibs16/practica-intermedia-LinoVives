@@ -29,7 +29,7 @@ export const uploadSignature = async (filePath) => {
 export const uploadPdf = async (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: 'deliverynotes', resource_type: 'raw', format: 'pdf' },
+      { folder: 'deliverynotes', resource_type: 'raw', format: 'pdf', access_mode: 'public' },
       (error, result) => {
         if (error) return reject(error);
         resolve(result.secure_url);

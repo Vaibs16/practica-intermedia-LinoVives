@@ -15,9 +15,9 @@ export const initSocket = (httpServer) => {
     if (!token) return next(new Error('Authentication required'));
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id).select('company');
+      const user = await User.findById(decoded._id).select('company');
       if (!user) return next(new Error('User not found'));
-      socket.userId = decoded.id;
+      socket.userId = decoded._id;
       socket.companyId = user.company?.toString();
       next();
     } catch {

@@ -42,6 +42,8 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+app.get('/test-error', (req, res) => { throw new Error('Error de prueba para Slack'); });
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(errorHandler);

@@ -13,7 +13,7 @@ Content-Type: application/json
 {
   "email": "user{{$timestamp}}@example.com",
   "password": "password123",
-  "name": "Lino",
+  "name": "Pablo",
   "lastName": "Vives",
   "nif": "12345678X"
 }
@@ -21,7 +21,7 @@ Content-Type: application/json
 @registro_token = {{registro.response.body.data.accessToken}}
 
 ### Validación con código recibido en Mailtrap
-@codigo = 752382
+@codigo = 266062
 
 PUT {{host}}/user/validation
 Authorization: Bearer {{registro_token}}
@@ -37,7 +37,7 @@ POST {{host}}/user/login
 Content-Type: application/json
 
 {
-  "email": "user1000@example.com",
+  "email": "user1779431539@example.com",
   "password": "password123"
 }
 ###
@@ -62,8 +62,8 @@ Content-Type: application/json
 
 {
   "isFreelance": false,
-  "name": "BildyCorp S.L.",
-  "cif": "B99999999",
+  "name": "AAA S.L.",
+  "cif": "B921913959",
   "address": {
     "street": "Calle Mayor, 15",
     "city": "Castellón"
@@ -150,7 +150,7 @@ Content-Type: application/json
 
 {
   "name": "García S.L.",
-  "cif": "B12315148",
+  "cif": "B12341148",
   "email": "contacto@garcia.com",
   "phone": "612345678",
   "address": {
@@ -220,7 +220,7 @@ Content-Type: application/json
 
 {
   "name": "Reforma Oficina Central",
-  "projectCode": "PRJ-004",
+  "projectCode": "PRJ-007",
   "client": "{{clientId}}",
   "email": "proyecto@garcia.com",
   "address": {
@@ -376,3 +376,6 @@ Authorization: Bearer {{token}}
 ### Eliminar albarán firmado - debe dar 400
 DELETE {{host}}/deliverynote/{{noteHorasId}}
 Authorization: Bearer {{token}}
+
+### Forzar error 500 (prueba Slack)
+GET http://localhost:3000/test-error
