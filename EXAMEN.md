@@ -1,5 +1,21 @@
 # F12 — El test como contrato de autorización
 
+## Nota sobre el punto (3) de la Parte 1
+
+El enunciado pide implementar en el controlador la verificación por rol/creador devolviendo 403. Esta lógica **ya estaba implementada en la rama `main` antes de crear la rama `examen`**, concretamente en el commit `91923f1 Update deliverynote.controllers.js`:
+
+```js
+const isOwner = note.user._id.toString() === req.user._id.toString();
+const isGuest = req.user.role === 'guest';
+if (!isOwner && !isGuest) {
+  throw AppError.forbidden('No tienes permiso para descargar este albarán');
+}
+```
+
+Lo que sí se ha añadido en esta rama son los **tests que ejercitan y documentan ese contrato**, que es el objetivo principal del reto.
+
+---
+
 ## Respuestas a las preguntas socráticas
 
 ### 1. ¿Qué fuga de seguridad queda sin cubrir si no probamos el acceso desde una compañía diferente?
